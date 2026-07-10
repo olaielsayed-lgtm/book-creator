@@ -28,7 +28,7 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash", // Using standard flash since 3.1 is fictional for now
+        model: "gemini-1.5-flash", 
         contents: `You are an expert ghostwriter. The user is writing a book. Write the next chapter based on this prompt:\n\n${prompt}`,
       });
 
