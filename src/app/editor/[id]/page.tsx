@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState, use, useMemo } from "react";
+import SettingsModal from "@/components/SettingsModal";
+import { GoogleGenAI } from "@google/genai";
 
 export default function Editor({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -9,15 +11,34 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
   const [chapterContent, setChapterContent] = useState("");
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    const apiKey = localStorage.getItem("gemini_api_key");
+    if (!apiKey) {
+      setErrorMsg("Please provide your Gemini API Key in Settings.");
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setIsGenerating(true);
-    // Simulate generation delay
-    setTimeout(() => {
-      setChapterContent("The city skyline was a jagged teeth against the twilight. Neon bled into the fog, painting the streets in hues of electric cyan and violent magenta. Kael tightened his coat against the synthetic chill. He had one lead left, and it was waiting in the underbelly of Sector 4...");
-      setIsGenerating(false);
+    setErrorMsg("");
+
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash", // Using standard flash since 3.1 is fictional for now
+        contents: `You are an expert ghostwriter. The user is writing a book. Write the next chapter based on this prompt:\n\n${prompt}`,
+      });
+
+      setChapterContent(response.text || "");
       setPrompt("");
-    }, 1500);
+    } catch (error: any) {
+      setErrorMsg("Generation failed: " + error.message);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -48,6 +69,7 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
         <header style={{ height: "64px", borderBottom: "1px solid var(--border-color)", display: "flex", alignItems: "center", padding: "0 var(--spacing-6)", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: "1.125rem", fontWeight: 500 }}>Chapter 1: Neon Shadows <span style={{color: "var(--text-tertiary)", fontSize: "0.875rem", marginLeft: "8px"}}>(Book ID: {resolvedParams.id})</span></h2>
           <div className="flex gap-4">
+            <button style={{ padding: "6px 12px", borderRadius: "var(--radius-full)", background: "var(--bg-surface-elevated)", color: "var(--text-primary)", fontSize: "0.875rem" }} onClick={() => setIsSettingsOpen(true)}>⚙️ Settings</button>
             <button style={{ padding: "6px 12px", borderRadius: "var(--radius-full)", background: "var(--bg-surface-elevated)", color: "var(--text-primary)", fontSize: "0.875rem" }}>Export PDF</button>
             <button style={{ padding: "6px 12px", borderRadius: "var(--radius-full)", background: "var(--bg-surface-elevated)", color: "var(--text-primary)", fontSize: "0.875rem" }}>Export Word</button>
           </div>
@@ -66,6 +88,7 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
                     The Context Continuity Engine will automatically include summaries of previous chapters. Just tell Gemini what happens next.
                   </p>
                   <div style={{ width: "100%", maxWidth: "600px", position: "relative" }}>
+                    {errorMsg && <div style={{ color: "var(--error)", marginBottom: "var(--spacing-2)", fontSize: "0.875rem" }}>{errorMsg}</div>}
                     <textarea 
                       placeholder="e.g. Kael investigates the lead in Sector 4 and runs into an ambush..."
                       value={prompt}
@@ -114,6 +137,8 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
           )}
         </div>
       </main>
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import SettingsModal from "@/components/SettingsModal";
 
 export default function Home() {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [books, setBooks] = useState([
     { id: "1", title: "The Quantum Thief", lastEdited: "2 hours ago" },
     { id: "2", title: "Echoes of Eternity", lastEdited: "1 day ago" },
@@ -28,19 +30,32 @@ export default function Home() {
           </div>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Book Creator</h1>
         </div>
-        <button style={{
-          padding: "var(--spacing-3) var(--spacing-6)",
-          borderRadius: "var(--radius-full)",
-          backgroundColor: "var(--accent-primary)",
-          color: "white",
-          fontWeight: 500,
-          transition: "background var(--transition-fast)"
-        }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
-        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
-        >
-          + New Book
-        </button>
+        <div className="flex gap-4">
+          <button style={{
+            padding: "var(--spacing-3)",
+            borderRadius: "var(--radius-full)",
+            backgroundColor: "var(--bg-surface-elevated)",
+            color: "var(--text-secondary)",
+            transition: "color var(--transition-fast)"
+          }}
+          onClick={() => setIsSettingsOpen(true)}
+          >
+            ⚙️
+          </button>
+          <button style={{
+            padding: "var(--spacing-3) var(--spacing-6)",
+            borderRadius: "var(--radius-full)",
+            backgroundColor: "var(--accent-primary)",
+            color: "white",
+            fontWeight: 500,
+            transition: "background var(--transition-fast)"
+          }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--accent-primary)'}
+          >
+            + New Book
+          </button>
+        </div>
       </header>
 
       <section className="flex-1">
@@ -75,6 +90,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </main>
   );
 }
