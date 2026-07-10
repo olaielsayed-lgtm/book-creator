@@ -9,16 +9,20 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [apiKey, setApiKey] = useState("");
+  const [modelName, setModelName] = useState("gemini-1.5-flash");
 
   useEffect(() => {
     if (isOpen) {
       const storedKey = localStorage.getItem("gemini_api_key");
+      const storedModel = localStorage.getItem("gemini_model");
       if (storedKey) setApiKey(storedKey);
+      if (storedModel) setModelName(storedModel);
     }
   }, [isOpen]);
 
   const handleSave = () => {
     localStorage.setItem("gemini_api_key", apiKey.trim());
+    localStorage.setItem("gemini_model", modelName.trim() || "gemini-1.5-flash");
     onClose();
   };
 
@@ -67,8 +71,31 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             onFocus={(e) => e.target.style.borderColor = "var(--border-focus)"}
             onBlur={(e) => e.target.style.borderColor = "var(--border-color)"}
           />
+        </div>
+
+        <div>
+          <label style={{ display: "block", marginBottom: "var(--spacing-2)", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+            Gemini Model
+          </label>
+          <input
+            type="text"
+            value={modelName}
+            onChange={(e) => setModelName(e.target.value)}
+            placeholder="e.g. gemini-1.5-flash"
+            style={{
+              width: "100%",
+              padding: "var(--spacing-3)",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-base)",
+              color: "var(--text-primary)",
+              outline: "none"
+            }}
+            onFocus={(e) => e.target.style.borderColor = "var(--border-focus)"}
+            onBlur={(e) => e.target.style.borderColor = "var(--border-color)"}
+          />
           <p style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginTop: "var(--spacing-2)" }}>
-            Your key is stored locally in your browser.
+            Your key and model preference are stored locally in your browser.
           </p>
         </div>
 

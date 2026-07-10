@@ -27,15 +27,31 @@ export default function Editor({ params }: { params: Promise<{ id: string }> }) 
 
     try {
       const ai = new GoogleGenAI({ apiKey });
+      const model = localStorage.getItem("gemini_model") || "gemini-1.5-flash";
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash", 
+        model: model, 
         contents: `You are an expert ghostwriter. The user is writing a book. Write the next chapter based on this prompt:\n\n${prompt}`,
       });
 
       setChapterContent(response.text || "");
       setPrompt("");
     } catch (error: any) {
-      setErrorMsg("Generation failed: " + error.message);
+      if (error.message && error.message.includes("404")) {
+        try {
+          const ai = new GoogleGenAI({ apiKey });
+          const modelsResponse = await ai.models.list();
+          // @ts-ignore
+          const models = [];
+          for await (const m of modelsResponse) {
+            models.push(m.name);
+          }
+          setErrorMsg(`Model not found (404). Available models on your account: ${models.join(", ")}`);
+        } catch (listError) {
+          setErrorMsg("Model not found (404). Could not fetch model list.");
+        }
+      } else {
+        setErrorMsg("Generation failed: " + error.message);
+      }
     } finally {
       setIsGenerating(false);
     }
